@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post('/upload-video')
 async def upload_video(file: UploadFile = File(...)):
     try:
-        file_name = f"{uuid.uuid4()}-{file.filename}"
+        file_name = f"{uuid.uuid4()}__{file.filename}"
         response = s3_client.create_multipart_upload(
             Bucket='adib-source-bucket',
             Key=file_name,
