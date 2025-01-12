@@ -1,16 +1,18 @@
+import uuid
+
 from fastapi import UploadFile, File
 from fastapi.routing import APIRouter
 from utils.s3_utils import s3_client
 
 router = APIRouter()
 
-
 @router.post('/upload-video')
 async def upload_video(file: UploadFile = File(...)):
     try:
+        file_name = f"{uuid.uuid4()}__{file.filename}"
         response = s3_client.create_multipart_upload(
             Bucket='adib-source-bucket',
-            Key=file.filename,
+            Key=file_name,
             ContentType=file.content_type
         )
 
@@ -26,7 +28,7 @@ async def upload_video(file: UploadFile = File(...)):
                 break
             part = s3_client.upload_part(
                 Bucket='adib-source-bucket',
-                Key=file.filename,
+                Key=file_name,
                 PartNumber=part_number,
                 UploadId=upload_id,
                 Body=chunk
@@ -39,7 +41,7 @@ async def upload_video(file: UploadFile = File(...)):
             
         s3_client.complete_multipart_upload(
             Bucket='adib-source-bucket',
-            Key=file.filename,
+            Key=file_name,
             UploadId=upload_id,
             MultipartUpload={
                 'Parts': parts
